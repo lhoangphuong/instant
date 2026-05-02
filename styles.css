@@ -6,28 +6,29 @@
 
 :root {
   color-scheme: dark;
-  --bg-page: #08131f;
-  --bg-page-2: #182938;
-  --bg-card: rgba(13, 27, 39, 0.9);
-  --bg-card-solid: #132536;
-  --border-soft: rgba(173, 214, 190, 0.16);
-  --border-strong: rgba(187, 236, 201, 0.32);
-  --text: #f1f7ee;
-  --text-muted: #adc6b9;
-  --text-faint: #789388;
-  --accent: #9ee66f;
-  --accent-bright: #d9ff82;
-  --clay: #ff9f45;
-  --clay-dark: #d85d2a;
-  --play-mat: #102334;
-  --play-mat-edge: rgba(187, 236, 201, 0.25);
+  --bg-page: #070816;
+  --bg-page-2: #14102c;
+  --bg-card: rgba(11, 13, 31, 0.9);
+  --bg-card-solid: #121633;
+  --border-soft: rgba(153, 214, 255, 0.16);
+  --border-strong: rgba(180, 159, 255, 0.36);
+  --text: #f7fbff;
+  --text-muted: #b7c8dd;
+  --text-faint: #7787a4;
+  --accent: #7cf7d4;
+  --accent-bright: #c4ff6a;
+  --clay: #ff8f5c;
+  --clay-dark: #e4477f;
+  --prism: #8b7cff;
+  --play-mat: #080d20;
+  --play-mat-edge: rgba(124, 247, 212, 0.24);
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 11px;
   --font: "Outfit", system-ui, -apple-system, sans-serif;
   --shadow-card:
     0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 22px 60px rgba(0, 0, 0, 0.32),
+    0 24px 72px rgba(0, 0, 0, 0.38),
     0 0 0 1px var(--border-soft);
   --shadow-play: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -72,9 +73,9 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 55% at 15% 15%, rgba(158, 230, 111, 0.16), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 88% 85%, rgba(255, 159, 69, 0.14), transparent 52%),
-    radial-gradient(circle at 50% 115%, rgba(71, 144, 191, 0.2), transparent 45%),
+    radial-gradient(ellipse 80% 55% at 15% 15%, rgba(124, 247, 212, 0.16), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 88% 85%, rgba(139, 124, 255, 0.2), transparent 52%),
+    radial-gradient(circle at 50% 115%, rgba(255, 143, 92, 0.16), transparent 45%),
     linear-gradient(165deg, var(--bg-page) 0%, var(--bg-page-2) 100%);
 }
 
@@ -121,11 +122,11 @@ body {
   height: 44px;
   border-radius: 14px;
   background:
-    radial-gradient(circle at 68% 30%, #fff8ad 0 7%, transparent 8%),
-    linear-gradient(150deg, #48c774 0%, var(--accent-bright) 42%, #2c8d51 100%);
+    radial-gradient(circle at 68% 30%, #ffffff 0 7%, transparent 8%),
+    conic-gradient(from 20deg, var(--accent), var(--prism), var(--clay), var(--accent-bright), var(--accent));
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-    0 0 24px rgba(158, 230, 111, 0.22);
+    0 0 24px rgba(124, 247, 212, 0.24);
 }
 
 .brand h1 {
@@ -143,8 +144,8 @@ body {
   min-height: 1.35rem;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(158, 230, 111, 0.28);
-  background: rgba(158, 230, 111, 0.12);
+  border: 1px solid rgba(124, 247, 212, 0.28);
+  background: rgba(124, 247, 212, 0.12);
   color: var(--accent);
   font-size: 0.68rem;
   font-weight: 700;
@@ -172,13 +173,13 @@ body {
   gap: 0.05rem;
   padding: 0.5rem 0.85rem;
   border-radius: var(--radius-md);
-  background: rgba(20, 43, 62, 0.82);
+  background: rgba(16, 24, 55, 0.84);
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-play);
 }
 
 .score-chip--best {
-  background: rgba(22, 51, 43, 0.82);
+  background: rgba(35, 28, 67, 0.82);
 }
 
 .score-chip__label {
@@ -334,7 +335,7 @@ body {
 .status-strip span {
   padding: 0.38rem 0.55rem;
   border-radius: 999px;
-  background: rgba(20, 43, 62, 0.7);
+  background: rgba(16, 24, 55, 0.72);
   border: 1px solid var(--border-soft);
 }
 

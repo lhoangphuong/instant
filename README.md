@@ -1,15 +1,17 @@
-# Snake v2.3
+# Snake v2.4
 
 A lightweight static Snake game served by nginx and deployed to Fly.io.
 
-## What's in v2.3
+## What's in v2.4
 
-- Refreshed orchard-style theme with clearer cards, score chips, and mobile controls.
+- Refreshed prism arcade theme with richer canvas graphics and mobile controls.
 - Persistent best score saved in the browser with `localStorage`.
 - Keyboard, d-pad, and swipe controls.
 - Pause and resume with `Space` or `P`.
 - Bonus fruit gameplay: every fifth point can spawn a timed golden fruit worth extra points.
 - Progressive pace: the game speeds up as the level increases.
+- Combo scoring: collect fruit quickly to stack extra points.
+- Prism hazards appear as levels increase.
 - Fly.io deployment workflow with Slack deploy notifications.
 
 ## Controls
@@ -42,4 +44,4 @@ The deploy workflow posts start, success, and failure messages to Slack with the
 
 ## Release download
 
-Tagged releases publish a single playable HTML file named `snake-<tag>.html`, such as `snake-v2.3.html`. Download it from the GitHub release page and open it in a browser; no server or extra files are required.
+Release packaging is manual. Run the "Release" GitHub Actions workflow, enter the version to build, and choose whether to publish the GitHub release. The workflow always builds a single playable HTML artifact named `snake-<version>.html`; it only creates/updates a GitHub Release when `publish_release` is set to `true`.

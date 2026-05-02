@@ -1,9 +1,17 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to package, for example v2.4"
+        required: true
+        default: "v2.4"
+      publish_release:
+        description: "Create/update the GitHub release"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -17,15 +25,24 @@ jobs:
 
       - name: Build standalone HTML
         env:
-          APP_VERSION: ${{ github.ref_name }}
+          APP_VERSION: ${{ inputs.version }}
         run: python3 scripts/build-single-file.py
 
+      - name: Upload packaged game artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snake-${{ inputs.version }}
+          path: dist/snake-${{ inputs.version }}.html
+
       - name: Create GitHub release
+        if: ${{ inputs.publish_release }}
         uses: softprops/action-gh-release@v2
         with:
-          name: Snake ${{ github.ref_name }}
+          tag_name: ${{ inputs.version }}
+          name: Snake ${{ inputs.version }}
           body: |
-            Download `snake-${{ github.ref_name }}.html` and open it in a browser to play Snake.
+            Download `snake-${{ inputs.version }}.html` and open it in a browser to play Snake.
 
             This standalone file includes the HTML, CSS, and JavaScript for the game.
-          files: dist/snake-${{ github.ref_name }}.html
+            Release publishing is manual from the workflow dispatch form.
+          files: dist/snake-${{ inputs.version }}.html

@@ -10,7 +10,7 @@ DIST = ROOT / "dist"
 
 
 def main() -> None:
-    version = os.environ.get("APP_VERSION", "v2.3").strip() or "v2.3"
+    version = os.environ.get("APP_VERSION", "v2.4").strip() or "v2.4"
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     css = (ROOT / "styles.css").read_text(encoding="utf-8")
     js = (ROOT / "game.js").read_text(encoding="utf-8")
