@@ -52,6 +52,8 @@ Required repository secrets:
 - `FLY_API_TOKEN`
 - `SLACK_WEBHOOK_URL` for deploy notifications
 
+The deploy workflow posts start, success, and failure messages to Slack with the app URL, commit SHA, commit author, commit message, workflow actor, and deploy duration when available.
+
 ## Release download
 
 Release packaging is manual. Run the **Release** GitHub Actions workflow, enter the version to build (default `v2.5`), and choose whether to publish the GitHub release. The workflow uploads a single playable `snake-<version>.html`; a GitHub Release is created only when `publish_release` is `true`.
