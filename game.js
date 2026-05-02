@@ -36,12 +36,12 @@
   window.addEventListener("resize", syncCanvasToDpr);
 
   const palette = {
-    field: "#090a0f",
-    grid: "rgba(161, 161, 170, 0.07)",
-    food: "#fb7185",
-    foodCore: "#fecdd3",
-    head: "#5eead4",
-    tail: "#0f766e",
+    field: "#d8cfc3",
+    grid: "rgba(52, 47, 42, 0.07)",
+    food: "#c55a2d",
+    foodCore: "#e8a574",
+    snakeHead: { r: 118, g: 148, b: 96 },
+    snakeTail: { r: 56, g: 72, b: 52 },
   };
 
   const randomCell = () => ({
@@ -153,19 +153,17 @@
     const fy = food.y * CELL + CELL / 2;
     const fr = CELL * 0.38;
 
-    ctx.shadowColor = palette.food;
-    ctx.shadowBlur = 14;
     ctx.fillStyle = palette.food;
     ctx.beginPath();
     ctx.arc(fx, fy, fr, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
 
     ctx.fillStyle = palette.foodCore;
     ctx.beginPath();
-    ctx.arc(fx - fr * 0.2, fy - fr * 0.2, fr * 0.35, 0, Math.PI * 2);
+    ctx.arc(fx - fr * 0.18, fy - fr * 0.2, fr * 0.32, 0, Math.PI * 2);
     ctx.fill();
 
+    const { snakeHead: sh, snakeTail: st } = palette;
     snake.forEach((seg, i) => {
       const t = i / Math.max(snake.length - 1, 1);
       const pad = i === 0 ? 2.25 : 3;
@@ -175,10 +173,9 @@
       const y = seg.y * CELL + pad;
       const radius = i === 0 ? 5 : 4;
 
-      const tr = Math.round;
-      const r = tr(34 + (1 - t) * 80);
-      const g = tr(180 + (1 - t) * 40);
-      const b = tr(172 + (1 - t) * 30);
+      const r = Math.round(sh.r + (st.r - sh.r) * t);
+      const g = Math.round(sh.g + (st.g - sh.g) * t);
+      const b = Math.round(sh.b + (st.b - sh.b) * t);
       const fill = `rgb(${r}, ${g}, ${b})`;
 
       roundRect(x, y, w, h, radius);
@@ -186,7 +183,7 @@
       ctx.fill();
       if (i === 0) {
         roundRect(x, y, w, h, radius);
-        ctx.strokeStyle = "rgba(255,255,255,0.38)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
         ctx.lineWidth = 1;
         ctx.stroke();
       }

@@ -21,3 +21,49 @@ jobs:
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # Target #cursor-chat by creating an Incoming Webhook in that channel, then add repo secret SLACK_WEBHOOK_URL.
+      - name: Notify Slack (#cursor-chat)
+        if: success()
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not set — skipping Slack (add Incoming Webhook secret for #cursor-chat)"
+            exit 0
+          fi
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          PAYLOAD=$(jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg branch "${{ github.ref_name }}" \
+            --arg sha "$SHORT_SHA" \
+            --arg run "$RUN_URL" \
+            --arg actor "${{ github.actor }}" \
+            '{
+              username: "GitHub Actions",
+              icon_emoji: ":white_check_mark:",
+              blocks: [
+                {
+                  type: "header",
+                  text: { type: "plain_text", text: "Fly deploy finished", emoji: true }
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("*`\($repo)`* deployed to Fly.io • `\($branch)` • `\($sha)` • triggered by `\($actor)`\n<\($run)|View workflow run>")
+                  }
+                },
+                {
+                  type: "context",
+                  elements: [
+                    { type: "mrkdwn", text: ":hash: Posted for *#cursor-chat* (webhook channel)" }
+                  ]
+                }
+              ]
+            }')
+          curl -sS -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d "$PAYLOAD"
