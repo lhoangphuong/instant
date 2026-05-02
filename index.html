@@ -21,7 +21,7 @@
             <h1>Snake</h1>
             <span class="version-badge">v2.3</span>
           </div>
-          <p class="subtitle">Clay board · swipe ready</p>
+          <p class="subtitle">Neon orchard · v2.3 gameplay</p>
         </div>
       </div>
       <div class="score-stack" aria-live="polite">
@@ -47,6 +47,11 @@
       </div>
 
       <p id="hint" class="hint">Press arrows, swipe, or use pad to move</p>
+      <div class="status-strip" aria-live="polite">
+        <span>Level <strong id="level">1</strong></span>
+        <span>Speed <strong id="speed">8</strong>x</span>
+        <span id="bonus-status">Bonus ready</span>
+      </div>
     </section>
 
     <footer class="controls">
@@ -57,7 +62,7 @@
         <button type="button" class="dpad__btn dpad__btn--right" data-dir="right" aria-label="Right">→</button>
         <button type="button" class="dpad__btn dpad__btn--down" data-dir="down" aria-label="Down">↓</button>
       </div>
-      <p class="hint hint--muted">Space or P pauses — best score saves on this device</p>
+      <p class="hint hint--muted">Eat gold bonus fruit for +3 points before it fades</p>
     </footer>
   </main>
   <script src="game.js"></script>

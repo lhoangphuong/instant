@@ -14,6 +14,10 @@ duration_raw="${2:-}"
 RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 SHORT_SHA="${GITHUB_SHA:0:7}"
 REPO="${GITHUB_REPOSITORY}"
+COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an <%ae>' "$GITHUB_SHA" 2>/dev/null || echo "${GITHUB_ACTOR}")"
+COMMIT_MESSAGE="$(git log -1 --pretty=format:'%s' "$GITHUB_SHA" 2>/dev/null || echo "Commit message unavailable")"
+commit_line="*Commit:* \`${SHORT_SHA}\` by ${COMMIT_AUTHOR}
+*Message:* ${COMMIT_MESSAGE}"
 
 fly_app=""
 fly_base_url=""
@@ -56,7 +60,8 @@ case "$phase" in
   start)
     HDR="Fly deploy starting"
     ICO=":rocket:"
-    BODY="*\`${REPO}\`* • branch \`${GITHUB_REF_NAME}\` • \`${SHORT_SHA}\` • \`${GITHUB_ACTOR}\`
+    BODY="*\`${REPO}\`* • branch \`${GITHUB_REF_NAME}\` • \`${GITHUB_ACTOR}\`
+${commit_line}
 Building and deploying to Fly.io…"
     if [[ -n "$url_line" ]]; then
       BODY+="
@@ -70,7 +75,8 @@ ${url_line}"
     HDR="Fly deploy finished"
     ICO=":white_check_mark:"
     BODY="*\`${REPO}\`* is live on Fly.io
-\`${GITHUB_REF_NAME}\` • \`${SHORT_SHA}\` • \`${GITHUB_ACTOR}\`"
+\`${GITHUB_REF_NAME}\` • \`${GITHUB_ACTOR}\`
+${commit_line}"
     if [[ -n "$duration_line" ]]; then
       BODY+="
 ${duration_line}"
@@ -87,7 +93,8 @@ ${url_line}"
     HDR="Fly deploy failed"
     ICO=":x:"
     BODY="*\`${REPO}\`* deploy did not finish
-\`${GITHUB_REF_NAME}\` • \`${SHORT_SHA}\` • \`${GITHUB_ACTOR}\`"
+\`${GITHUB_REF_NAME}\` • \`${GITHUB_ACTOR}\`
+${commit_line}"
     if [[ -n "$duration_line" ]]; then
       BODY+="
 ${duration_line}"
