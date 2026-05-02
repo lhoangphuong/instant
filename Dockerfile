@@ -1,3 +1,6 @@
-FROM pierrezemb/gostatic
-COPY . /srv/http/
-CMD ["-port","8080","-https-promote", "-enable-logging"]
+# Static Snake game — nginx Alpine serves HTML/CSS/JS from repo root.
+FROM nginx:alpine
+
+COPY index.html styles.css game.js /usr/share/nginx/html/
+
+EXPOSE 80

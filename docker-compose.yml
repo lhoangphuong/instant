@@ -1,0 +1,5 @@
+services:
+  snake:
+    build: .
+    ports:
+      - "${SNAKE_PORT:-8081}:80"

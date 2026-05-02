@@ -1,12 +1,12 @@
 # fly.toml app configuration file generated for instant--z2bfw on 2026-05-02T17:16:22Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
 
 app = 'instant--z2bfw'
 primary_region = 'sin'
 
 [build]
+  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 80
@@ -17,7 +17,6 @@ primary_region = 'sin'
   processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
