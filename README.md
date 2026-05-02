@@ -1,17 +1,18 @@
-# Snake v2.5
+# Snake v2.6
 
 A lightweight static Snake game served by nginx and deployed to Fly.io.
 
-## What's in v2.5
+## What's in v2.6
 
-- **Testable game rules** in `game-core.js` (`SnakeGameCore`) shared by the playable app and automated tests.
-- **Unit tests**: Python `unittest` discovers `tests/test_*.py` (build sanity + Node rule runner when Node is available).
-- **Browser test page**: open `tests.html` (via local server) for a visible pass/fail summary of the same rule checks.
-- **CI**: GitHub Actions workflow `Tests` runs on pushes and pull requests to `main`.
+- **Green & red theme**: Updated UI and canvas palette (snake and accents in green, hazards and food accents in red).
 
-Previous v2.4 features remain:
+Previous features remain:
 
-- Prism arcade theme, hazards, combos, bonus fruit, level speed, swipe, pause, best score.
+- Testable game rules in `game-core.js` (`SnakeGameCore`) shared by the playable app and automated tests.
+- Unit tests: Python `unittest` discovers `tests/test_*.py` (build sanity + Node rule runner when Node is available).
+- Browser test page: open `tests.html` (via local server) for a visible pass/fail summary of the same rule checks.
+- CI: GitHub Actions workflow `Tests` runs on pushes and pull requests to `main`.
+- Arcade hazards, combos, bonus fruit, level speed, swipe, pause, best score.
 
 ## Controls
 
@@ -56,4 +57,4 @@ The deploy workflow posts start, success, and failure messages to Slack with the
 
 ## Release download
 
-Release packaging is manual. Run the **Release** GitHub Actions workflow, enter the version to build (default `v2.5`), and choose whether to publish the GitHub release. The workflow uploads a single playable `snake-<version>.html`; a GitHub Release is created only when `publish_release` is `true`.
+Release packaging is manual. Run the **Release** GitHub Actions workflow, enter the version to build (default `v2.6`), and choose whether to publish the GitHub release. The workflow uploads a single playable `snake-<version>.html`; a GitHub Release is created only when `publish_release` is `true`.
