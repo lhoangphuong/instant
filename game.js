@@ -8,11 +8,19 @@
   const ctx = canvas.getContext("2d");
   const scoreEl = document.getElementById("score");
   const bestScoreEl = document.getElementById("best-score");
+  const levelEl = document.getElementById("level");
+  const speedEl = document.getElementById("speed");
+  const bonusStatusEl = document.getElementById("bonus-status");
   const restartBtn = document.getElementById("restart");
   const overlay = document.getElementById("overlay");
   const overlayTitle = overlay.querySelector(".overlay__title");
   const hintEl = document.getElementById("hint");
   const BEST_SCORE_KEY = "snake.bestScore";
+  const POINTS_PER_LEVEL = 5;
+  const BASE_SPEED = 7;
+  const MAX_SPEED = 13;
+  const BONUS_VALUE = 3;
+  const BONUS_LIFETIME = 34;
 
   /** @type {{ x: number, y: number }[]} */
   let snake;
@@ -22,8 +30,13 @@
   let nextDirection;
   /** @type {{ x: number, y: number }} */
   let food;
+  /** @type {{ x: number, y: number } | null} */
+  let bonusFood = null;
   let score = 0;
   let bestScore = loadBestScore();
+  let level = 1;
+  let bonusTicks = 0;
+  let nextBonusScore = POINTS_PER_LEVEL;
   let ticks = 0;
   let running = false;
   let paused = false;
@@ -90,13 +103,42 @@
   /** @param {{ x: number, y: number }} f */
   const foodOverlapsSnake = (f) => snake.some((s) => s.x === f.x && s.y === f.y);
 
+  /** @param {{ x: number, y: number }} f */
+  const foodOverlapsBonus = (f) => bonusFood && bonusFood.x === f.x && bonusFood.y === f.y;
+
   const spawnFood = () => {
     let f;
     do {
       f = randomCell();
-    } while (foodOverlapsSnake(f));
+    } while (foodOverlapsSnake(f) || foodOverlapsBonus(f));
     return f;
   };
+
+  function currentSpeed() {
+    return Math.min(MAX_SPEED, BASE_SPEED + level - 1);
+  }
+
+  function syncLevelState() {
+    level = Math.floor(score / POINTS_PER_LEVEL) + 1;
+    levelEl.textContent = String(level);
+    speedEl.textContent = String(currentSpeed());
+
+    if (bonusFood) {
+      bonusStatusEl.textContent = `Bonus ${bonusTicks}`;
+    } else {
+      const untilBonus = Math.max(nextBonusScore - score, 0);
+      bonusStatusEl.textContent = untilBonus === 0 ? "Bonus ready" : `Bonus in ${untilBonus}`;
+    }
+  }
+
+  function maybeSpawnBonus() {
+    if (bonusFood || score < nextBonusScore) return;
+    bonusFood = spawnFood();
+    bonusTicks = BONUS_LIFETIME;
+    nextBonusScore += POINTS_PER_LEVEL;
+    syncLevelState();
+    setHint(`Golden fruit appeared · +${BONUS_VALUE} points`, true);
+  }
 
   function reset() {
     const mid = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
@@ -104,13 +146,18 @@
     direction = { x: 1, y: 0 };
     nextDirection = { ...direction };
     food = spawnFood();
+    bonusFood = null;
     score = 0;
+    level = 1;
+    bonusTicks = 0;
+    nextBonusScore = POINTS_PER_LEVEL;
     ticks = 0;
     running = false;
     paused = false;
     started = false;
     scoreEl.textContent = "0";
     syncBestScore();
+    syncLevelState();
     overlay.hidden = true;
     overlayTitle.textContent = "Game over";
     setHint("Press arrows, swipe, or use pad to move");
@@ -146,17 +193,35 @@
 
     snake.unshift({ x: nx, y: ny });
 
-    if (nx === food.x && ny === food.y) {
-      score += 1;
+    const ateFood = nx === food.x && ny === food.y;
+    const ateBonus = bonusFood && nx === bonusFood.x && ny === bonusFood.y;
+
+    if (ateFood || ateBonus) {
+      score += ateBonus ? BONUS_VALUE : 1;
       scoreEl.textContent = String(score);
+      if (ateBonus) {
+        bonusFood = null;
+        bonusTicks = 0;
+        setHint(`Bonus collected · +${BONUS_VALUE}`, true);
+      }
       syncBestScore();
+      syncLevelState();
       if (snake.length === COLS * ROWS) {
         endGame("Board cleared", "Perfect run · tap Play again");
         return;
       }
-      food = spawnFood();
+      if (ateFood) food = spawnFood();
+      maybeSpawnBonus();
     } else {
       snake.pop();
+    }
+
+    if (bonusFood && bonusTicks > 0) {
+      bonusTicks -= 1;
+      if (bonusTicks === 0) {
+        bonusFood = null;
+      }
+      syncLevelState();
     }
   }
 
@@ -215,6 +280,27 @@
     ctx.arc(fx - fr * 0.18, fy - fr * 0.2, fr * 0.32, 0, Math.PI * 2);
     ctx.fill();
 
+    if (bonusFood) {
+      const bx = bonusFood.x * CELL + CELL / 2;
+      const by = bonusFood.y * CELL + CELL / 2;
+      const pulse = 0.7 + Math.sin(ticks * 0.7) * 0.08;
+
+      ctx.fillStyle = "rgba(255, 221, 117, 0.24)";
+      ctx.beginPath();
+      ctx.arc(bx, by, CELL * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffcf4a";
+      ctx.beginPath();
+      ctx.arc(bx, by, CELL * 0.36, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#fff3b0";
+      ctx.beginPath();
+      ctx.arc(bx - CELL * 0.08, by - CELL * 0.1, CELL * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     const { snakeHead: sh, snakeTail: st } = palette;
     snake.forEach((seg, i) => {
       const t = i / Math.max(snake.length - 1, 1);
@@ -243,7 +329,7 @@
   }
 
   function loop(ts) {
-    const speed = 8;
+    const speed = currentSpeed();
     const frame = Math.floor(ts / (1000 / speed));
     if (frame > ticks && running) {
       ticks = frame;
