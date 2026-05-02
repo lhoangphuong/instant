@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snake</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1>Snake</h1>
+      <p class="subtitle">Arrow keys · Eat dots · Grow</p>
+    </header>
+    <canvas id="game" width="400" height="400" aria-label="Snake game area"></canvas>
+    <div class="hud">
+      <span>Score <strong id="score">0</strong></span>
+      <button type="button" id="restart" hidden>Play again</button>
+    </div>
+    <p id="hint" class="hint">Press any arrow key to start</p>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
