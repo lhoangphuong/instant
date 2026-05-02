@@ -7,9 +7,12 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   const scoreEl = document.getElementById("score");
+  const bestScoreEl = document.getElementById("best-score");
   const restartBtn = document.getElementById("restart");
   const overlay = document.getElementById("overlay");
+  const overlayTitle = overlay.querySelector(".overlay__title");
   const hintEl = document.getElementById("hint");
+  const BEST_SCORE_KEY = "snake.bestScore";
 
   /** @type {{ x: number, y: number }[]} */
   let snake;
@@ -20,8 +23,13 @@
   /** @type {{ x: number, y: number }} */
   let food;
   let score = 0;
+  let bestScore = loadBestScore();
   let ticks = 0;
   let running = false;
+  let paused = false;
+  let started = false;
+  /** @type {{ x: number, y: number } | null} */
+  let pointerStart = null;
 
   function syncCanvasToDpr() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -49,6 +57,36 @@
     y: Math.floor(Math.random() * ROWS),
   });
 
+  function loadBestScore() {
+    try {
+      const saved = window.localStorage.getItem(BEST_SCORE_KEY);
+      return Math.max(0, Number.parseInt(saved || "0", 10) || 0);
+    } catch {
+      return 0;
+    }
+  }
+
+  function saveBestScore() {
+    try {
+      window.localStorage.setItem(BEST_SCORE_KEY, String(bestScore));
+    } catch {
+      // Storage can be unavailable in private or embedded browsing contexts.
+    }
+  }
+
+  function syncBestScore() {
+    if (score > bestScore) {
+      bestScore = score;
+      saveBestScore();
+    }
+    bestScoreEl.textContent = String(bestScore);
+  }
+
+  function setHint(text, idle = false) {
+    hintEl.textContent = text;
+    hintEl.classList.toggle("idle", idle);
+  }
+
   /** @param {{ x: number, y: number }} f */
   const foodOverlapsSnake = (f) => snake.some((s) => s.x === f.x && s.y === f.y);
 
@@ -69,17 +107,26 @@
     score = 0;
     ticks = 0;
     running = false;
+    paused = false;
+    started = false;
     scoreEl.textContent = "0";
+    syncBestScore();
     overlay.hidden = true;
-    hintEl.textContent = "Press arrow keys / use pad to move";
-    hintEl.classList.remove("idle");
+    overlayTitle.textContent = "Game over";
+    setHint("Press arrows, swipe, or use pad to move");
+  }
+
+  function endGame(title, hint) {
+    running = false;
+    paused = false;
+    overlay.hidden = false;
+    overlayTitle.textContent = title;
+    syncBestScore();
+    setHint(hint, true);
   }
 
   function gameOver() {
-    running = false;
-    overlay.hidden = false;
-    hintEl.textContent = "Game over · tap Play again";
-    hintEl.classList.add("idle");
+    endGame("Game over", "Game over · tap Play again");
   }
 
   function step() {
@@ -92,7 +139,7 @@
       gameOver();
       return;
     }
-    if (snake.some((s) => s.x === nx && s.y === ny)) {
+    if (snake.slice(0, -1).some((s) => s.x === nx && s.y === ny)) {
       gameOver();
       return;
     }
@@ -102,6 +149,11 @@
     if (nx === food.x && ny === food.y) {
       score += 1;
       scoreEl.textContent = String(score);
+      syncBestScore();
+      if (snake.length === COLS * ROWS) {
+        endGame("Board cleared", "Perfect run · tap Play again");
+        return;
+      }
       food = spawnFood();
     } else {
       snake.pop();
@@ -203,32 +255,57 @@
 
   /**
    * @param {{ x: number, y: number } | null} d
-   * @param {KeyboardEvent | null} ev
+   * @param {Event | null} ev
    */
   function trySetDirection(d, ev) {
     if (!d) return;
     if (ev) ev.preventDefault();
 
     const opposites = (a, b) => a.x === -b.x && a.y === -b.y;
-    if (!running && overlay.hidden) running = true;
+    if (!running && !paused && overlay.hidden) {
+      running = true;
+      paused = false;
+      started = true;
+    }
     if (!opposites(d, direction)) nextDirection = d;
-    hintEl.classList.add("idle");
+    setHint(paused ? "Paused · press Space or P to resume" : "Space or P pauses", true);
+  }
+
+  function togglePause() {
+    if (!started || !overlay.hidden) return;
+    paused = !paused;
+    running = !paused;
+    setHint(paused ? "Paused · press Space or P to resume" : "Space or P pauses", true);
+  }
+
+  function directionFromName(name) {
+    if (name === "up") return { x: 0, y: -1 };
+    if (name === "down") return { x: 0, y: 1 };
+    if (name === "left") return { x: -1, y: 0 };
+    if (name === "right") return { x: 1, y: 0 };
+    return null;
   }
 
   document.addEventListener("keydown", (e) => {
+    if (e.key === " " || e.key.toLowerCase() === "p") {
+      e.preventDefault();
+      togglePause();
+      return;
+    }
+
     let d = null;
     switch (e.key) {
       case "ArrowUp":
-        d = { x: 0, y: -1 };
+        d = directionFromName("up");
         break;
       case "ArrowDown":
-        d = { x: 0, y: 1 };
+        d = directionFromName("down");
         break;
       case "ArrowLeft":
-        d = { x: -1, y: 0 };
+        d = directionFromName("left");
         break;
       case "ArrowRight":
-        d = { x: 1, y: 0 };
+        d = directionFromName("right");
         break;
       default:
         return;
@@ -238,14 +315,28 @@
 
   document.querySelectorAll(".dpad__btn[data-dir]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const dir = btn.getAttribute("data-dir");
-      let d = null;
-      if (dir === "up") d = { x: 0, y: -1 };
-      else if (dir === "down") d = { x: 0, y: 1 };
-      else if (dir === "left") d = { x: -1, y: 0 };
-      else if (dir === "right") d = { x: 1, y: 0 };
-      trySetDirection(d, null);
+      trySetDirection(directionFromName(btn.getAttribute("data-dir")), null);
     });
+  });
+
+  canvas.addEventListener("pointerdown", (e) => {
+    pointerStart = { x: e.clientX, y: e.clientY };
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener("pointerup", (e) => {
+    if (!pointerStart) return;
+
+    const dx = e.clientX - pointerStart.x;
+    const dy = e.clientY - pointerStart.y;
+    const distance = Math.hypot(dx, dy);
+    pointerStart = null;
+
+    if (distance < 24) return;
+    const dir = Math.abs(dx) > Math.abs(dy)
+      ? directionFromName(dx > 0 ? "right" : "left")
+      : directionFromName(dy > 0 ? "down" : "up");
+    trySetDirection(dir, e);
   });
 
   restartBtn.addEventListener("click", () => {
