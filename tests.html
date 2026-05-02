@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snake · test results</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.25rem; background: #0a0f18; color: #e8f4ff; }
+    h1 { font-size: 1.1rem; }
+    summary { cursor: pointer; margin: 0.5rem 0; color: #7cf7d4; }
+    #summary-line { margin: 0.75rem 0; font-weight: 600; }
+    .fail { color: #ff8a8a; }
+    .ok { color: #9eef9e; }
+    pre { overflow: auto; padding: 0.75rem; background: #121a26; border-radius: 8px; font-size: 0.8rem; border: 1px solid rgba(124,247,212,0.2); }
+    a { color: #c4ff6a; }
+  </style>
+</head>
+<body>
+  <h1>Snake v2.5 · rule tests (browser)</h1>
+  <p>Open this file via the dev server (<code>python3 -m http.server</code>) so <code>game-core.js</code> loads. Raw <code>file://</code> may block ES modules/scripts.</p>
+  <p><a href="index.html">← Back to game</a></p>
+  <p id="summary-line">Running…</p>
+  <details open>
+    <summary>Detailed results</summary>
+    <pre id="detail"></pre>
+  </details>
+  <script src="game-core.js"></script>
+  <script>
+    (function () {
+      /** @typedef {{ ok: boolean, name: string, detail?: string }} TC */
+      /** @type {TC[]} */
+      const results = [];
+      function ok(name, cond, detail) {
+        results.push({ ok: !!cond, name, ...(detail ? { detail } : {}) });
+      }
+
+      var Core = SnakeGameCore;
+      if (!Core) {
+        ok("snake-game-core-loaded", false, "SnakeGameCore missing");
+      } else {
+        ok("snake-game-core-loaded", true);
+        var rng = () => 0.11;
+        var st = Core.createState(rng);
+        Core.trySetNextDirection(st, { x: 1, y: 0 });
+        while (!st.dead) Core.stepOnce(st, rng);
+        ok("wall-death", st.overlayTitle === "Game over");
+
+        st = Core.createState(rng);
+        Core.trySetNextDirection(st, { x: 1, y: 0 });
+        Core.stepOnce(st, rng);
+        var x1 = st.snake[0].x;
+        Core.trySetNextDirection(st, { x: -1, y: 0 });
+        Core.stepOnce(st, rng);
+        ok("no-instant-reverse", st.snake[0].x > x1);
+
+        st = Core.createState(rng);
+        Core.trySetNextDirection(st, { x: 1, y: 0 });
+        st.hazards.push({ x: st.snake[0].x + 1, y: st.snake[0].y });
+        Core.stepOnce(st, rng);
+        ok("hazard-hit", st.dead && st.overlayTitle === "Hazard hit");
+
+        ok("level-score-0", Core.computeLevel(0) === 1);
+        ok("level-score-5", Core.computeLevel(5) === 2);
+        ok("speed-level-1", Core.currentSpeed(1) === Core.CONST.BASE_SPEED);
+      }
+
+      var passed = results.filter(function (r) { return r.ok; }).length;
+      var failed = results.length - passed;
+      var line = document.getElementById("summary-line");
+      line.innerHTML =
+        '<span class="' + (failed ? "fail" : "ok") + '">' +
+        (failed === 0 ? "All OK" : failed + " failed") +
+        "</span> · " +
+        passed + " passed · " +
+        failed + " failed";
+
+      document.getElementById("detail").textContent = JSON.stringify(
+        { runtime: "browser", exitCode: failed ? 1 : 0, passed, failed, tests: results },
+        null,
+        2,
+      );
+
+      console.log("[snake-tests]", { passed, failed, results });
+    })();
+  </script>
+</body>
+</html>

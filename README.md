@@ -1,18 +1,17 @@
-# Snake v2.4
+# Snake v2.5
 
 A lightweight static Snake game served by nginx and deployed to Fly.io.
 
-## What's in v2.4
+## What's in v2.5
 
-- Refreshed prism arcade theme with richer canvas graphics and mobile controls.
-- Persistent best score saved in the browser with `localStorage`.
-- Keyboard, d-pad, and swipe controls.
-- Pause and resume with `Space` or `P`.
-- Bonus fruit gameplay: every fifth point can spawn a timed golden fruit worth extra points.
-- Progressive pace: the game speeds up as the level increases.
-- Combo scoring: collect fruit quickly to stack extra points.
-- Prism hazards appear as levels increase.
-- Fly.io deployment workflow with Slack deploy notifications.
+- **Testable game rules** in `game-core.js` (`SnakeGameCore`) shared by the playable app and automated tests.
+- **Unit tests**: Python `unittest` discovers `tests/test_*.py` (build sanity + Node rule runner when Node is available).
+- **Browser test page**: open `tests.html` (via local server) for a visible pass/fail summary of the same rule checks.
+- **CI**: GitHub Actions workflow `Tests` runs on pushes and pull requests to `main`.
+
+Previous v2.4 features remain:
+
+- Prism arcade theme, hazards, combos, bonus fruit, level speed, swipe, pause, best score.
 
 ## Controls
 
@@ -23,13 +22,26 @@ A lightweight static Snake game served by nginx and deployed to Fly.io.
 
 ## Run locally
 
-This is a static app. Any local static server works:
-
 ```sh
 python3 -m http.server 8080
 ```
 
-Then open <http://localhost:8080>.
+- Game: <http://localhost:8080>
+- **Test results UI**: <http://localhost:8080/tests.html>
+
+## Run tests locally
+
+```sh
+python3 -m unittest discover -s tests -p "test_*.py" -v
+```
+
+When [Node.js](https://nodejs.org/) is installed:
+
+```sh
+node tests/game-tests-runner.mjs
+```
+
+Install Node to run the Snake rule tests on your machine (CI always has Node).
 
 ## Deploy
 
@@ -44,4 +56,4 @@ The deploy workflow posts start, success, and failure messages to Slack with the
 
 ## Release download
 
-Release packaging is manual. Run the "Release" GitHub Actions workflow, enter the version to build, and choose whether to publish the GitHub release. The workflow always builds a single playable HTML artifact named `snake-<version>.html`; it only creates/updates a GitHub Release when `publish_release` is set to `true`.
+Release packaging is manual. Run the **Release** GitHub Actions workflow, enter the version to build (default `v2.5`), and choose whether to publish the GitHub release. The workflow uploads a single playable `snake-<version>.html`; a GitHub Release is created only when `publish_release` is `true`.

@@ -1,8 +1,8 @@
 (() => {
+  const Core = SnakeGameCore;
+  const { COLS, ROWS } = Core.CONST;
   const LOGICAL = 400;
-  const CELL = 20;
-  const COLS = LOGICAL / CELL;
-  const ROWS = LOGICAL / CELL;
+  const CELL = LOGICAL / COLS;
 
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
@@ -18,39 +18,20 @@
   const overlayTitle = overlay.querySelector(".overlay__title");
   const hintEl = document.getElementById("hint");
   const BEST_SCORE_KEY = "snake.bestScore";
-  const POINTS_PER_LEVEL = 5;
-  const BASE_SPEED = 8;
-  const MAX_SPEED = 14;
-  const BONUS_VALUE = 3;
-  const BONUS_LIFETIME = 34;
-  const COMBO_WINDOW = 22;
-  const MAX_HAZARDS = 12;
 
-  /** @type {{ x: number, y: number }[]} */
-  let snake;
-  /** @type {{ x: number, y: number }} */
-  let direction;
-  /** @type {{ x: number, y: number }} */
-  let nextDirection;
-  /** @type {{ x: number, y: number }} */
-  let food;
-  /** @type {{ x: number, y: number } | null} */
-  let bonusFood = null;
-  /** @type {{ x: number, y: number }[]} */
-  let hazards = [];
-  let score = 0;
+  /** @type {ReturnType<Core["createState"]>} */
+  let state;
   let bestScore = loadBestScore();
-  let level = 1;
-  let bonusTicks = 0;
-  let nextBonusScore = POINTS_PER_LEVEL;
-  let combo = 0;
-  let comboTicks = 0;
   let ticks = 0;
   let running = false;
   let paused = false;
   let started = false;
   /** @type {{ x: number, y: number } | null} */
   let pointerStart = null;
+
+  function rng() {
+    return Math.random();
+  }
 
   function syncCanvasToDpr() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -76,11 +57,6 @@
     snakeTail: { r: 47, g: 151, b: 102 },
   };
 
-  const randomCell = () => ({
-    x: Math.floor(Math.random() * COLS),
-    y: Math.floor(Math.random() * ROWS),
-  });
-
   function loadBestScore() {
     try {
       const saved = window.localStorage.getItem(BEST_SCORE_KEY);
@@ -98,9 +74,9 @@
     }
   }
 
-  function syncBestScore() {
-    if (score > bestScore) {
-      bestScore = score;
+  function syncBestScoreUi() {
+    if (state.score > bestScore) {
+      bestScore = state.score;
       saveBestScore();
     }
     bestScoreEl.textContent = String(bestScore);
@@ -111,178 +87,57 @@
     hintEl.classList.toggle("idle", idle);
   }
 
-  const sameCell = (a, b) => a && b && a.x === b.x && a.y === b.y;
+  function syncUiFromState() {
+    scoreEl.textContent = String(state.score);
+    levelEl.textContent = String(state.level);
+    speedEl.textContent = String(Core.currentSpeed(state.level));
+    comboEl.textContent = state.combo > 1 ? `${state.combo}x` : "1x";
+    hazardEl.textContent = String(state.hazards.length);
 
-  /** @param {{ x: number, y: number }} cell */
-  const overlapsSnake = (cell) => snake.some((s) => sameCell(s, cell));
-
-  /** @param {{ x: number, y: number }} cell */
-  const overlapsHazard = (cell) => hazards.some((h) => sameCell(h, cell));
-
-  /** @param {{ x: number, y: number }} cell */
-  const isOccupied = (cell) => (
-    overlapsSnake(cell)
-    || overlapsHazard(cell)
-    || sameCell(food, cell)
-    || sameCell(bonusFood, cell)
-  );
-
-  const spawnOpenCell = () => {
-    let cell;
-    do {
-      cell = randomCell();
-    } while (isOccupied(cell));
-    return cell;
-  };
-
-  const spawnFood = () => {
-    let f;
-    do {
-      f = randomCell();
-    } while (overlapsSnake(f) || overlapsHazard(f) || sameCell(bonusFood, f));
-    return f;
-  };
-
-  function currentSpeed() {
-    return Math.min(MAX_SPEED, BASE_SPEED + level - 1);
-  }
-
-  function syncLevelState() {
-    const nextLevel = Math.floor(score / POINTS_PER_LEVEL) + 1;
-    const leveledUp = nextLevel > level;
-    level = nextLevel;
-    ensureHazards();
-    levelEl.textContent = String(level);
-    speedEl.textContent = String(currentSpeed());
-    comboEl.textContent = combo > 1 ? `${combo}x` : "1x";
-    hazardEl.textContent = String(hazards.length);
-
-    if (bonusFood) {
-      bonusStatusEl.textContent = `Bonus ${bonusTicks}`;
+    if (state.bonusFood) {
+      bonusStatusEl.textContent = `Bonus ${state.bonusTicks}`;
     } else {
-      const untilBonus = Math.max(nextBonusScore - score, 0);
+      const untilBonus = Math.max(state.nextBonusScore - state.score, 0);
       bonusStatusEl.textContent = untilBonus === 0 ? "Bonus ready" : `Bonus in ${untilBonus}`;
     }
-    if (leveledUp && level > 1) setHint(`Level ${level} · hazards shifted`, true);
-  }
-
-  function maybeSpawnBonus() {
-    if (bonusFood || score < nextBonusScore) return;
-    bonusFood = spawnOpenCell();
-    bonusTicks = BONUS_LIFETIME;
-    nextBonusScore += POINTS_PER_LEVEL;
-    syncLevelState();
-    setHint(`Golden fruit appeared · +${BONUS_VALUE} points`, true);
-  }
-
-  function ensureHazards() {
-    const target = Math.min(MAX_HAZARDS, Math.max(0, level - 2) * 2);
-    while (hazards.length < target) hazards.push(spawnOpenCell());
-    if (hazards.length > target) hazards = hazards.slice(0, target);
+    syncBestScoreUi();
   }
 
   function reset() {
-    const mid = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
-    snake = [mid, { x: mid.x - 1, y: mid.y }, { x: mid.x - 2, y: mid.y }];
-    direction = { x: 1, y: 0 };
-    nextDirection = { ...direction };
-    bonusFood = null;
-    hazards = [];
-    food = spawnFood();
-    score = 0;
-    level = 1;
-    bonusTicks = 0;
-    nextBonusScore = POINTS_PER_LEVEL;
-    combo = 0;
-    comboTicks = 0;
+    state = Core.createState(rng);
     ticks = 0;
     running = false;
     paused = false;
     started = false;
-    scoreEl.textContent = "0";
-    syncBestScore();
-    syncLevelState();
     overlay.hidden = true;
     overlayTitle.textContent = "Game over";
     setHint("Press arrows, swipe, or use pad to move");
+    syncUiFromState();
   }
 
-  function endGame(title, hint) {
+  function endGame() {
     running = false;
     paused = false;
     overlay.hidden = false;
-    overlayTitle.textContent = title;
-    syncBestScore();
-    setHint(hint, true);
-  }
-
-  function gameOver() {
-    endGame("Game over", "Game over · tap Play again");
+    overlayTitle.textContent = state.overlayTitle || "Game over";
+    syncBestScoreUi();
+    setHint(
+      state.overlayTitle === "Hazard hit"
+        ? "You hit a prism hazard · tap Play again"
+        : state.win
+          ? "Perfect run · tap Play again"
+          : "Game over · tap Play again",
+      true,
+    );
   }
 
   function step() {
-    direction = nextDirection;
-    const head = snake[0];
-    const nx = head.x + direction.x;
-    const ny = head.y + direction.y;
-
-    if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) {
-      gameOver();
+    if (state.dead || state.win) return;
+    Core.stepOnce(state, rng);
+    syncUiFromState();
+    if (state.dead) {
+      endGame();
       return;
-    }
-    const nextHead = { x: nx, y: ny };
-    if (snake.slice(0, -1).some((s) => s.x === nx && s.y === ny)) {
-      gameOver();
-      return;
-    }
-    if (overlapsHazard(nextHead)) {
-      endGame("Hazard hit", "You hit a prism hazard · tap Play again");
-      return;
-    }
-
-    snake.unshift(nextHead);
-
-    const ateFood = nx === food.x && ny === food.y;
-    const ateBonus = bonusFood && nx === bonusFood.x && ny === bonusFood.y;
-
-    if (ateFood || ateBonus) {
-      combo = comboTicks > 0 ? combo + 1 : 1;
-      comboTicks = COMBO_WINDOW;
-      const basePoints = ateBonus ? BONUS_VALUE : 1;
-      const comboBonus = Math.max(0, combo - 1);
-      const gained = basePoints + comboBonus;
-      score += gained;
-      scoreEl.textContent = String(score);
-      if (ateBonus) {
-        bonusFood = null;
-        bonusTicks = 0;
-        setHint(`Bonus collected · +${gained}`, true);
-      } else if (comboBonus > 0) {
-        setHint(`Combo ${combo}x · +${gained}`, true);
-      }
-      syncBestScore();
-      syncLevelState();
-      if (snake.length + hazards.length === COLS * ROWS) {
-        endGame("Board cleared", "Perfect run · tap Play again");
-        return;
-      }
-      if (ateFood) food = spawnFood();
-      maybeSpawnBonus();
-    } else {
-      snake.pop();
-      if (comboTicks > 0) {
-        comboTicks -= 1;
-        if (comboTicks === 0) combo = 0;
-        syncLevelState();
-      }
-    }
-
-    if (bonusFood && bonusTicks > 0) {
-      bonusTicks -= 1;
-      if (bonusTicks === 0) {
-        bonusFood = null;
-      }
-      syncLevelState();
     }
   }
 
@@ -327,7 +182,7 @@
       ctx.stroke();
     }
 
-    hazards.forEach((hazard, i) => {
+    state.hazards.forEach((hazard, i) => {
       const x = hazard.x * CELL + 3;
       const y = hazard.y * CELL + 3;
       const spin = (ticks + i * 3) % 8;
@@ -344,8 +199,8 @@
       ctx.restore();
     });
 
-    const fx = food.x * CELL + CELL / 2;
-    const fy = food.y * CELL + CELL / 2;
+    const fx = state.food.x * CELL + CELL / 2;
+    const fy = state.food.y * CELL + CELL / 2;
     const fr = CELL * 0.38;
 
     ctx.fillStyle = palette.food;
@@ -358,9 +213,9 @@
     ctx.arc(fx - fr * 0.18, fy - fr * 0.2, fr * 0.32, 0, Math.PI * 2);
     ctx.fill();
 
-    if (bonusFood) {
-      const bx = bonusFood.x * CELL + CELL / 2;
-      const by = bonusFood.y * CELL + CELL / 2;
+    if (state.bonusFood) {
+      const bx = state.bonusFood.x * CELL + CELL / 2;
+      const by = state.bonusFood.y * CELL + CELL / 2;
       const pulse = 0.7 + Math.sin(ticks * 0.7) * 0.08;
 
       ctx.fillStyle = "rgba(255, 221, 117, 0.24)";
@@ -380,8 +235,8 @@
     }
 
     const { snakeHead: sh, snakeTail: st } = palette;
-    snake.forEach((seg, i) => {
-      const t = i / Math.max(snake.length - 1, 1);
+    state.snake.forEach((seg, i) => {
+      const t = i / Math.max(state.snake.length - 1, 1);
       const pad = i === 0 ? 2.25 : 3;
       const w = CELL - pad * 2;
       const h = CELL - pad * 2;
@@ -407,7 +262,7 @@
   }
 
   function loop(ts) {
-    const speed = currentSpeed();
+    const speed = Core.currentSpeed(state.level);
     const frame = Math.floor(ts / (1000 / speed));
     if (frame > ticks && running) {
       ticks = frame;
@@ -425,13 +280,12 @@
     if (!d) return;
     if (ev) ev.preventDefault();
 
-    const opposites = (a, b) => a.x === -b.x && a.y === -b.y;
-    if (!running && !paused && overlay.hidden) {
+    if (!running && !paused && overlay.hidden && !state.dead) {
       running = true;
       paused = false;
       started = true;
     }
-    if (!opposites(d, direction)) nextDirection = d;
+    Core.trySetNextDirection(state, d);
     setHint(paused ? "Paused · press Space or P to resume" : "Space or P pauses", true);
   }
 
