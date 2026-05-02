@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package single-file game
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build standalone HTML
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: python3 scripts/build-single-file.py
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Snake ${{ github.ref_name }}
+          body: |
+            Download `snake-${{ github.ref_name }}.html` and open it in a browser to play Snake.
+
+            This standalone file includes the HTML, CSS, and JavaScript for the game.
+          files: dist/snake-${{ github.ref_name }}.html

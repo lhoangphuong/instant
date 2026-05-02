@@ -39,3 +39,7 @@ Required repository secrets:
 - `SLACK_WEBHOOK_URL` for deploy notifications
 
 The deploy workflow posts start, success, and failure messages to Slack with the app URL, commit SHA, commit author, commit message, workflow actor, and deploy duration when available.
+
+## Release download
+
+Tagged releases publish a single playable HTML file named `snake-<tag>.html`, such as `snake-v2.3.html`. Download it from the GitHub release page and open it in a browser; no server or extra files are required.
