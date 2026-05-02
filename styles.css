@@ -6,6 +6,7 @@
 
 :root {
   color-scheme: dark;
+
   --bg-page: #070816;
   --bg-page-2: #14102c;
   --bg-card: rgba(11, 13, 31, 0.9);
@@ -28,6 +29,7 @@
   --font: "Outfit", system-ui, -apple-system, sans-serif;
   --shadow-card:
     0 1px 0 rgba(255, 255, 255, 0.08) inset,
+
     0 24px 72px rgba(0, 0, 0, 0.38),
     0 0 0 1px var(--border-soft);
   --shadow-play: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -73,6 +75,7 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
+
     radial-gradient(ellipse 80% 55% at 15% 15%, rgba(124, 247, 212, 0.16), transparent 55%),
     radial-gradient(ellipse 70% 50% at 88% 85%, rgba(139, 124, 255, 0.2), transparent 52%),
     radial-gradient(circle at 50% 115%, rgba(255, 143, 92, 0.16), transparent 45%),
@@ -122,6 +125,7 @@ body {
   height: 44px;
   border-radius: 14px;
   background:
+
     radial-gradient(circle at 68% 30%, #ffffff 0 7%, transparent 8%),
     conic-gradient(from 20deg, var(--accent), var(--prism), var(--clay), var(--accent-bright), var(--accent));
   box-shadow:
@@ -144,6 +148,7 @@ body {
   min-height: 1.35rem;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
+
   border: 1px solid rgba(124, 247, 212, 0.28);
   background: rgba(124, 247, 212, 0.12);
   color: var(--accent);
@@ -173,12 +178,14 @@ body {
   gap: 0.05rem;
   padding: 0.5rem 0.85rem;
   border-radius: var(--radius-md);
+
   background: rgba(16, 24, 55, 0.84);
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-play);
 }
 
 .score-chip--best {
+
   background: rgba(35, 28, 67, 0.82);
 }
 
@@ -335,6 +342,7 @@ body {
 .status-strip span {
   padding: 0.38rem 0.55rem;
   border-radius: 999px;
+
   background: rgba(16, 24, 55, 0.72);
   border: 1px solid var(--border-soft);
 }
