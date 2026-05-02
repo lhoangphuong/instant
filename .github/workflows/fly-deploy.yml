@@ -17,53 +17,45 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
+      # Incoming Webhook must target #cursor-chat; repo secret SLACK_WEBHOOK_URL.
+      - name: Notify Slack — deploy started (#cursor-chat)
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: bash .github/scripts/slack-notify.sh start
+
+      - name: Start deploy timer
+        run: echo "DEPLOY_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
       - name: Deploy
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      # Target #cursor-chat by creating an Incoming Webhook in that channel, then add repo secret SLACK_WEBHOOK_URL.
-      - name: Notify Slack (#cursor-chat)
+      - name: Notify Slack — deploy succeeded (#cursor-chat)
         if: success()
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          if [ -z "$SLACK_WEBHOOK_URL" ]; then
-            echo "SLACK_WEBHOOK_URL not set — skipping Slack (add Incoming Webhook secret for #cursor-chat)"
-            exit 0
+          END=$(date +%s)
+          if [[ -n "${DEPLOY_STARTED_AT:-}" ]]; then
+            SEC=$((END - DEPLOY_STARTED_AT))
+          else
+            SEC=0
           fi
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          PAYLOAD=$(jq -n \
-            --arg repo "${{ github.repository }}" \
-            --arg branch "${{ github.ref_name }}" \
-            --arg sha "$SHORT_SHA" \
-            --arg run "$RUN_URL" \
-            --arg actor "${{ github.actor }}" \
-            '{
-              username: "GitHub Actions",
-              icon_emoji: ":white_check_mark:",
-              blocks: [
-                {
-                  type: "header",
-                  text: { type: "plain_text", text: "Fly deploy finished", emoji: true }
-                },
-                {
-                  type: "section",
-                  text: {
-                    type: "mrkdwn",
-                    text: ("*`\($repo)`* deployed to Fly.io • `\($branch)` • `\($sha)` • triggered by `\($actor)`\n<\($run)|View workflow run>")
-                  }
-                },
-                {
-                  type: "context",
-                  elements: [
-                    { type: "mrkdwn", text: ":hash: Posted for *#cursor-chat* (webhook channel)" }
-                  ]
-                }
-              ]
-            }')
-          curl -sS -X POST "$SLACK_WEBHOOK_URL" \
-            -H 'Content-Type: application/json; charset=utf-8' \
-            -d "$PAYLOAD"
+          bash .github/scripts/slack-notify.sh success "$SEC"
+
+      - name: Notify Slack — deploy failed (#cursor-chat)
+        if: failure()
+        continue-on-error: true
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          END=$(date +%s)
+          if [[ -n "${DEPLOY_STARTED_AT:-}" ]]; then
+            SEC=$((END - DEPLOY_STARTED_AT))
+          else
+            SEC=0
+          fi
+          bash .github/scripts/slack-notify.sh failure "$SEC"
