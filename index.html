@@ -19,9 +19,9 @@
         <div class="brand__text">
           <div class="brand__heading">
             <h1>Snake</h1>
-            <span class="version-badge">v2.3</span>
+            <span class="version-badge">v2.4</span>
           </div>
-          <p class="subtitle">Neon orchard · v2.3 gameplay</p>
+          <p class="subtitle">Neon orchard · hazards & combos</p>
         </div>
       </div>
       <div class="score-stack" aria-live="polite">
@@ -50,6 +50,8 @@
       <div class="status-strip" aria-live="polite">
         <span>Level <strong id="level">1</strong></span>
         <span>Speed <strong id="speed">8</strong>x</span>
+        <span>Combo <strong id="combo">1x</strong></span>
+        <span>Hazards <strong id="hazards">0</strong></span>
         <span id="bonus-status">Bonus ready</span>
       </div>
     </section>
@@ -62,7 +64,7 @@
         <button type="button" class="dpad__btn dpad__btn--right" data-dir="right" aria-label="Right">→</button>
         <button type="button" class="dpad__btn dpad__btn--down" data-dir="down" aria-label="Down">↓</button>
       </div>
-      <p class="hint hint--muted">Space or P pauses — gold fruit gives +3 before it fades</p>
+      <p class="hint hint--muted">Chain snacks for combo points — Space or P pauses — crystal hazards bite</p>
     </footer>
   </main>
   <script src="game.js"></script>

@@ -11,16 +11,20 @@
   const levelEl = document.getElementById("level");
   const speedEl = document.getElementById("speed");
   const bonusStatusEl = document.getElementById("bonus-status");
+  const comboEl = document.getElementById("combo");
+  const hazardEl = document.getElementById("hazards");
   const restartBtn = document.getElementById("restart");
   const overlay = document.getElementById("overlay");
   const overlayTitle = overlay.querySelector(".overlay__title");
   const hintEl = document.getElementById("hint");
   const BEST_SCORE_KEY = "snake.bestScore";
   const POINTS_PER_LEVEL = 5;
-  const BASE_SPEED = 7;
-  const MAX_SPEED = 13;
+  const BASE_SPEED = 8;
+  const MAX_SPEED = 14;
   const BONUS_VALUE = 3;
   const BONUS_LIFETIME = 34;
+  const COMBO_WINDOW = 22;
+  const MAX_HAZARDS = 12;
 
   /** @type {{ x: number, y: number }[]} */
   let snake;
@@ -32,11 +36,15 @@
   let food;
   /** @type {{ x: number, y: number } | null} */
   let bonusFood = null;
+  /** @type {{ x: number, y: number }[]} */
+  let hazards = [];
   let score = 0;
   let bestScore = loadBestScore();
   let level = 1;
   let bonusTicks = 0;
   let nextBonusScore = POINTS_PER_LEVEL;
+  let combo = 0;
+  let comboTicks = 0;
   let ticks = 0;
   let running = false;
   let paused = false;
@@ -57,12 +65,15 @@
   window.addEventListener("resize", syncCanvasToDpr);
 
   const palette = {
-    field: "#d8cfc3",
-    grid: "rgba(52, 47, 42, 0.07)",
-    food: "#c55a2d",
-    foodCore: "#e8a574",
-    snakeHead: { r: 118, g: 148, b: 96 },
-    snakeTail: { r: 56, g: 72, b: 52 },
+    field: "#081523",
+    grid: "rgba(163, 230, 190, 0.08)",
+    food: "#ff7a45",
+    foodCore: "#ffd39f",
+    hazard: "#6d5dfc",
+    hazardCore: "#b8b0ff",
+    hazardGlow: "rgba(109, 93, 252, 0.24)",
+    snakeHead: { r: 179, g: 255, b: 111 },
+    snakeTail: { r: 47, g: 151, b: 102 },
   };
 
   const randomCell = () => ({
@@ -100,17 +111,35 @@
     hintEl.classList.toggle("idle", idle);
   }
 
-  /** @param {{ x: number, y: number }} f */
-  const foodOverlapsSnake = (f) => snake.some((s) => s.x === f.x && s.y === f.y);
+  const sameCell = (a, b) => a && b && a.x === b.x && a.y === b.y;
 
-  /** @param {{ x: number, y: number }} f */
-  const foodOverlapsBonus = (f) => bonusFood && bonusFood.x === f.x && bonusFood.y === f.y;
+  /** @param {{ x: number, y: number }} cell */
+  const overlapsSnake = (cell) => snake.some((s) => sameCell(s, cell));
+
+  /** @param {{ x: number, y: number }} cell */
+  const overlapsHazard = (cell) => hazards.some((h) => sameCell(h, cell));
+
+  /** @param {{ x: number, y: number }} cell */
+  const isOccupied = (cell) => (
+    overlapsSnake(cell)
+    || overlapsHazard(cell)
+    || sameCell(food, cell)
+    || sameCell(bonusFood, cell)
+  );
+
+  const spawnOpenCell = () => {
+    let cell;
+    do {
+      cell = randomCell();
+    } while (isOccupied(cell));
+    return cell;
+  };
 
   const spawnFood = () => {
     let f;
     do {
       f = randomCell();
-    } while (foodOverlapsSnake(f) || foodOverlapsBonus(f));
+    } while (overlapsSnake(f) || overlapsHazard(f) || sameCell(bonusFood, f));
     return f;
   };
 
@@ -119,9 +148,14 @@
   }
 
   function syncLevelState() {
-    level = Math.floor(score / POINTS_PER_LEVEL) + 1;
+    const nextLevel = Math.floor(score / POINTS_PER_LEVEL) + 1;
+    const leveledUp = nextLevel > level;
+    level = nextLevel;
+    ensureHazards();
     levelEl.textContent = String(level);
     speedEl.textContent = String(currentSpeed());
+    comboEl.textContent = combo > 1 ? `${combo}x` : "1x";
+    hazardEl.textContent = String(hazards.length);
 
     if (bonusFood) {
       bonusStatusEl.textContent = `Bonus ${bonusTicks}`;
@@ -129,15 +163,22 @@
       const untilBonus = Math.max(nextBonusScore - score, 0);
       bonusStatusEl.textContent = untilBonus === 0 ? "Bonus ready" : `Bonus in ${untilBonus}`;
     }
+    if (leveledUp && level > 1) setHint(`Level ${level} · hazards shifted`, true);
   }
 
   function maybeSpawnBonus() {
     if (bonusFood || score < nextBonusScore) return;
-    bonusFood = spawnFood();
+    bonusFood = spawnOpenCell();
     bonusTicks = BONUS_LIFETIME;
     nextBonusScore += POINTS_PER_LEVEL;
     syncLevelState();
     setHint(`Golden fruit appeared · +${BONUS_VALUE} points`, true);
+  }
+
+  function ensureHazards() {
+    const target = Math.min(MAX_HAZARDS, Math.max(0, level - 2) * 2);
+    while (hazards.length < target) hazards.push(spawnOpenCell());
+    if (hazards.length > target) hazards = hazards.slice(0, target);
   }
 
   function reset() {
@@ -145,12 +186,15 @@
     snake = [mid, { x: mid.x - 1, y: mid.y }, { x: mid.x - 2, y: mid.y }];
     direction = { x: 1, y: 0 };
     nextDirection = { ...direction };
-    food = spawnFood();
     bonusFood = null;
+    hazards = [];
+    food = spawnFood();
     score = 0;
     level = 1;
     bonusTicks = 0;
     nextBonusScore = POINTS_PER_LEVEL;
+    combo = 0;
+    comboTicks = 0;
     ticks = 0;
     running = false;
     paused = false;
@@ -186,27 +230,39 @@
       gameOver();
       return;
     }
+    const nextHead = { x: nx, y: ny };
     if (snake.slice(0, -1).some((s) => s.x === nx && s.y === ny)) {
       gameOver();
       return;
     }
+    if (overlapsHazard(nextHead)) {
+      endGame("Hazard hit", "You hit a prism hazard · tap Play again");
+      return;
+    }
 
-    snake.unshift({ x: nx, y: ny });
+    snake.unshift(nextHead);
 
     const ateFood = nx === food.x && ny === food.y;
     const ateBonus = bonusFood && nx === bonusFood.x && ny === bonusFood.y;
 
     if (ateFood || ateBonus) {
-      score += ateBonus ? BONUS_VALUE : 1;
+      combo = comboTicks > 0 ? combo + 1 : 1;
+      comboTicks = COMBO_WINDOW;
+      const basePoints = ateBonus ? BONUS_VALUE : 1;
+      const comboBonus = Math.max(0, combo - 1);
+      const gained = basePoints + comboBonus;
+      score += gained;
       scoreEl.textContent = String(score);
       if (ateBonus) {
         bonusFood = null;
         bonusTicks = 0;
-        setHint(`Bonus collected · +${BONUS_VALUE}`, true);
+        setHint(`Bonus collected · +${gained}`, true);
+      } else if (comboBonus > 0) {
+        setHint(`Combo ${combo}x · +${gained}`, true);
       }
       syncBestScore();
       syncLevelState();
-      if (snake.length === COLS * ROWS) {
+      if (snake.length + hazards.length === COLS * ROWS) {
         endGame("Board cleared", "Perfect run · tap Play again");
         return;
       }
@@ -214,6 +270,11 @@
       maybeSpawnBonus();
     } else {
       snake.pop();
+      if (comboTicks > 0) {
+        comboTicks -= 1;
+        if (comboTicks === 0) combo = 0;
+        syncLevelState();
+      }
     }
 
     if (bonusFood && bonusTicks > 0) {
@@ -265,6 +326,23 @@
       ctx.lineTo(LOGICAL, y * CELL + 0.5);
       ctx.stroke();
     }
+
+    hazards.forEach((hazard, i) => {
+      const x = hazard.x * CELL + 3;
+      const y = hazard.y * CELL + 3;
+      const spin = (ticks + i * 3) % 8;
+
+      ctx.save();
+      ctx.translate(x + CELL / 2 - 3, y + CELL / 2 - 3);
+      ctx.rotate((Math.PI / 16) * spin);
+      roundRect(-6, -6, 12, 12, 3);
+      ctx.fillStyle = palette.hazard;
+      ctx.fill();
+      roundRect(-3, -3, 6, 6, 2);
+      ctx.fillStyle = palette.hazardCore;
+      ctx.fill();
+      ctx.restore();
+    });
 
     const fx = food.x * CELL + CELL / 2;
     const fy = food.y * CELL + CELL / 2;
