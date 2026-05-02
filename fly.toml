@@ -2,7 +2,7 @@
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 
-app = 'instant--z2bfw'
+app = 'instant--cursor'
 primary_region = 'sin'
 
 [build]
