@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to package, for example v2.7"
+        description: "Version to package, for example v2.8"
         required: true
-        default: "v2.7"
+        default: "v2.8"
       publish_release:
         description: "Create/update the GitHub release"
         required: true
