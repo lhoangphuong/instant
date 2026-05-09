@@ -46,15 +46,15 @@
   window.addEventListener("resize", syncCanvasToDpr);
 
   const palette = {
-    field: "#0a1622",
-    grid: "rgba(56, 189, 248, 0.1)",
+    field: "#1a0a08",
+    grid: "rgba(251, 146, 60, 0.12)",
     food: "#fb923c",
-    foodCore: "#fde68a",
-    hazard: "#be123c",
-    hazardCore: "#fda4af",
-    hazardGlow: "rgba(190, 18, 60, 0.28)",
-    snakeHead: { r: 45, g: 212, b: 191 },
-    snakeTail: { r: 13, g: 116, b: 109 },
+    foodCore: "#fef08a",
+    hazard: "#292524",
+    hazardCore: "#f97316",
+    hazardGlow: "rgba(249, 115, 22, 0.35)",
+    snakeHead: { r: 254, g: 240, b: 138 },
+    snakeTail: { r: 127, g: 29, b: 29 },
   };
 
   function loadBestScore() {
@@ -123,7 +123,7 @@
     syncBestScoreUi();
     setHint(
       state.overlayTitle === "Hazard hit"
-        ? "You hit a sea urchin · tap Play again"
+        ? "You hit a hot coal · tap Play again"
         : state.win
           ? "Perfect run · tap Play again"
           : "Game over · tap Play again",
@@ -186,14 +186,22 @@
       const x = hazard.x * CELL + 3;
       const y = hazard.y * CELL + 3;
       const spin = (ticks + i * 3) % 8;
+      const cx = x + CELL / 2 - 3;
+      const cy = y + CELL / 2 - 3;
 
       ctx.save();
-      ctx.translate(x + CELL / 2 - 3, y + CELL / 2 - 3);
+      ctx.translate(cx, cy);
       ctx.rotate((Math.PI / 16) * spin);
-      roundRect(-6, -6, 12, 12, 3);
+
+      ctx.fillStyle = palette.hazardGlow;
+      ctx.beginPath();
+      ctx.arc(0, 0, CELL * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+
+      roundRect(-8, -8, 16, 16, 4);
       ctx.fillStyle = palette.hazard;
       ctx.fill();
-      roundRect(-3, -3, 6, 6, 2);
+      roundRect(-4, -4, 8, 8, 2);
       ctx.fillStyle = palette.hazardCore;
       ctx.fill();
       ctx.restore();
@@ -218,7 +226,7 @@
       const by = state.bonusFood.y * CELL + CELL / 2;
       const pulse = 0.7 + Math.sin(ticks * 0.7) * 0.08;
 
-      ctx.fillStyle = "rgba(251, 191, 36, 0.28)";
+      ctx.fillStyle = "rgba(253, 224, 71, 0.32)";
       ctx.beginPath();
       ctx.arc(bx, by, CELL * pulse, 0, Math.PI * 2);
       ctx.fill();
@@ -228,35 +236,62 @@
       ctx.arc(bx, by, CELL * 0.36, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#fef3c7";
+      ctx.fillStyle = "#fffbeb";
       ctx.beginPath();
       ctx.arc(bx - CELL * 0.08, by - CELL * 0.1, CELL * 0.12, 0, Math.PI * 2);
       ctx.fill();
     }
 
     const { snakeHead: sh, snakeTail: st } = palette;
+    const bodyR = CELL * 0.44;
+    const headR = CELL * 0.48;
+
     state.snake.forEach((seg, i) => {
+      const cx = seg.x * CELL + CELL / 2;
+      const cy = seg.y * CELL + CELL / 2;
       const t = i / Math.max(state.snake.length - 1, 1);
-      const pad = i === 0 ? 2.25 : 3;
-      const w = CELL - pad * 2;
-      const h = CELL - pad * 2;
-      const x = seg.x * CELL + pad;
-      const y = seg.y * CELL + pad;
-      const radius = i === 0 ? 5 : 4;
+      const r = i === 0 ? headR : bodyR;
 
-      const r = Math.round(sh.r + (st.r - sh.r) * t);
-      const g = Math.round(sh.g + (st.g - sh.g) * t);
-      const b = Math.round(sh.b + (st.b - sh.b) * t);
-      const fill = `rgb(${r}, ${g}, ${b})`;
+      const rr = Math.round(sh.r + (st.r - sh.r) * t);
+      const gg = Math.round(sh.g + (st.g - sh.g) * t);
+      const bb = Math.round(sh.b + (st.b - sh.b) * t);
+      const fill = `rgb(${rr}, ${gg}, ${bb})`;
 
-      roundRect(x, y, w, h, radius);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fillStyle = fill;
       ctx.fill();
+
       if (i === 0) {
-        roundRect(x, y, w, h, radius);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 251, 235, 0.5)";
+        ctx.lineWidth = 1.25;
         ctx.stroke();
+
+        const hx = state.direction.x;
+        const hy = state.direction.y;
+        const eyeFwd = CELL * 0.14;
+        const eyeSide = CELL * 0.11;
+        const px = -hy;
+        const py = hx;
+        const eyeR = Math.max(2.2, CELL * 0.055);
+        const pupilR = eyeR * 0.48;
+        const pupilShift = CELL * 0.045;
+
+        const drawEye = (sx, sy) => {
+          ctx.beginPath();
+          ctx.arc(sx, sy, eyeR, 0, Math.PI * 2);
+          ctx.fillStyle = "#fffbeb";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(sx + hx * pupilShift, sy + hy * pupilShift, pupilR, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(28, 10, 8, 0.9)";
+          ctx.fill();
+        };
+
+        drawEye(cx + hx * eyeFwd + px * eyeSide, cy + hy * eyeFwd + py * eyeSide);
+        drawEye(cx + hx * eyeFwd - px * eyeSide, cy + hy * eyeFwd - py * eyeSide);
       }
     });
   }
