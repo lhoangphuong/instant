@@ -1,8 +1,8 @@
-# Snake v2.7
+# Snake v2.8
 
 A lightweight static Snake game served by nginx and deployed to Fly.io.
 
-## What's in v2.7
+## What's in v2.8
 
 - **Beach theme**: Ocean-and-sand UI palette, refreshed canvas colors (teal snake, coral snacks, urchin-style hazards), and copy tuned to the seaside vibe.
 
@@ -57,4 +57,4 @@ The deploy workflow posts start, success, and failure messages to Slack with the
 
 ## Release download
 
-Release packaging is manual. Run the **Release** GitHub Actions workflow, enter the version to build (default `v2.7`), and choose whether to publish the GitHub release. The workflow uploads a single playable `snake-<version>.html`; a GitHub Release is created only when `publish_release` is `true`.
+Release packaging is manual. Run the **Release** GitHub Actions workflow, enter the version to build (default `v2.8`), and choose whether to publish the GitHub release. The workflow uploads a single playable `snake-<version>.html`; a GitHub Release is created only when `publish_release` is `true`.
