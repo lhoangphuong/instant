@@ -28,7 +28,7 @@ class BuildSingleFileTest(unittest.TestCase):
         self.assertIn("<script>", html)
         self.assertNotIn('href="styles.css"', html)
         self.assertNotIn('src="game.js"', html)
-        self.assertIn("v2.8", html)
+        self.assertIn("v2.9", html)
         self.assertIn("SnakeGameCore", html)
 
 
