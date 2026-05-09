@@ -7,22 +7,22 @@
 :root {
   color-scheme: dark;
 
-  --bg-page: #070f0a;
-  --bg-page-2: #140c10;
-  --bg-card: rgba(10, 18, 14, 0.92);
-  --bg-card-solid: #132018;
-  --border-soft: rgba(74, 222, 128, 0.2);
-  --border-strong: rgba(248, 113, 113, 0.38);
-  --text: #f0fdf4;
-  --text-muted: #a8d4bb;
-  --text-faint: #5a8a6c;
-  --accent: #4ade80;
-  --accent-bright: #86efac;
-  --clay: #f87171;
-  --clay-dark: #dc2626;
-  --prism: #ef4444;
-  --play-mat: #060c09;
-  --play-mat-edge: rgba(74, 222, 128, 0.26);
+  --bg-page: #0a1e2e;
+  --bg-page-2: #1a3d4a;
+  --bg-card: rgba(12, 32, 48, 0.92);
+  --bg-card-solid: #143444;
+  --border-soft: rgba(56, 189, 248, 0.22);
+  --border-strong: rgba(251, 146, 60, 0.42);
+  --text: #f0f9ff;
+  --text-muted: #94c9e0;
+  --text-faint: #4a7a94;
+  --accent: #2dd4bf;
+  --accent-bright: #5eead4;
+  --clay: #fb7185;
+  --clay-dark: #e11d48;
+  --prism: #f97316;
+  --play-mat: #0a1622;
+  --play-mat-edge: rgba(45, 212, 191, 0.28);
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 11px;
@@ -76,10 +76,10 @@ body {
   pointer-events: none;
   background:
 
-    radial-gradient(ellipse 80% 55% at 15% 15%, rgba(74, 222, 128, 0.18), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 88% 85%, rgba(239, 68, 68, 0.2), transparent 52%),
-    radial-gradient(circle at 50% 115%, rgba(220, 38, 38, 0.12), transparent 45%),
-    linear-gradient(165deg, var(--bg-page) 0%, var(--bg-page-2) 100%);
+    radial-gradient(ellipse 75% 50% at 18% 12%, rgba(251, 191, 36, 0.22), transparent 55%),
+    radial-gradient(ellipse 70% 55% at 85% 18%, rgba(56, 189, 248, 0.2), transparent 52%),
+    radial-gradient(ellipse 90% 45% at 50% 100%, rgba(14, 165, 233, 0.18), transparent 50%),
+    linear-gradient(168deg, var(--bg-page) 0%, var(--bg-page-2) 100%);
 }
 
 .shell {
@@ -127,10 +127,10 @@ body {
   background:
 
     radial-gradient(circle at 68% 30%, #ffffff 0 7%, transparent 8%),
-    conic-gradient(from 20deg, var(--accent), var(--prism), var(--clay), var(--accent-bright), var(--accent));
+    conic-gradient(from 200deg, #38bdf8, var(--accent), #fde68a, var(--prism), var(--accent-bright), #38bdf8);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-    0 0 24px rgba(74, 222, 128, 0.28);
+    0 0 24px rgba(45, 212, 191, 0.32);
 }
 
 .brand h1 {
@@ -149,8 +149,8 @@ body {
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
 
-  border: 1px solid rgba(74, 222, 128, 0.32);
-  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(45, 212, 191, 0.12);
   color: var(--accent);
   font-size: 0.68rem;
   font-weight: 700;
@@ -179,14 +179,14 @@ body {
   padding: 0.5rem 0.85rem;
   border-radius: var(--radius-md);
 
-  background: rgba(12, 28, 20, 0.88);
+  background: rgba(10, 36, 52, 0.88);
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-play);
 }
 
 .score-chip--best {
 
-  background: rgba(40, 18, 22, 0.82);
+  background: rgba(42, 28, 18, 0.82);
 }
 
 .score-chip__label {
@@ -249,7 +249,7 @@ body {
   gap: 1rem;
   padding: 1rem;
   border-radius: var(--radius-md);
-  background: rgba(12, 18, 14, 0.9);
+  background: rgba(10, 28, 42, 0.9);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-soft);
@@ -291,11 +291,11 @@ body {
 
 .btn--primary {
   padding: 0.65rem 1.35rem;
-  color: #0a0f0c;
-  background: linear-gradient(165deg, #22c55e 0%, var(--accent) 42%, var(--clay-dark) 100%);
+  color: #041a1a;
+  background: linear-gradient(165deg, #0d9488 0%, var(--accent) 38%, #f59e0b 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.22) inset,
-    0 6px 18px rgba(34, 197, 94, 0.22);
+    0 6px 18px rgba(13, 148, 136, 0.28);
 }
 
 .btn--primary:hover {
@@ -343,7 +343,7 @@ body {
   padding: 0.38rem 0.55rem;
   border-radius: 999px;
 
-  background: rgba(14, 26, 20, 0.78);
+  background: rgba(10, 32, 48, 0.78);
   border: 1px solid var(--border-soft);
 }
 
@@ -374,7 +374,7 @@ body {
   justify-content: center;
   border-radius: var(--radius-sm);
   border: 1px dashed var(--border-strong);
-  background: rgba(241, 247, 238, 0.03);
+  background: rgba(240, 249, 255, 0.04);
 }
 
 .dpad__btn {
@@ -395,7 +395,7 @@ body {
 
 .dpad__btn:hover {
   border-color: var(--border-strong);
-  background: rgba(241, 247, 238, 0.08);
+  background: rgba(240, 249, 255, 0.08);
 }
 
 .dpad__btn:active {
