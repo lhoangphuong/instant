@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: superfly/flyctl-actions/setup-flyctl@v1.5
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       # Incoming Webhook must target #cursor-chat; repo secret SLACK_WEBHOOK_URL.
       - name: Notify Slack — deploy started (#cursor-chat)
