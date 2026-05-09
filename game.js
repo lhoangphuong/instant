@@ -46,15 +46,15 @@
   window.addEventListener("resize", syncCanvasToDpr);
 
   const palette = {
-    field: "#060c09",
-    grid: "rgba(74, 222, 128, 0.09)",
-    food: "#ef4444",
-    foodCore: "#fca5a5",
-    hazard: "#dc2626",
-    hazardCore: "#fecaca",
-    hazardGlow: "rgba(220, 38, 38, 0.28)",
-    snakeHead: { r: 74, g: 222, b: 128 },
-    snakeTail: { r: 21, g: 128, b: 61 },
+    field: "#0a1622",
+    grid: "rgba(56, 189, 248, 0.1)",
+    food: "#fb923c",
+    foodCore: "#fde68a",
+    hazard: "#be123c",
+    hazardCore: "#fda4af",
+    hazardGlow: "rgba(190, 18, 60, 0.28)",
+    snakeHead: { r: 45, g: 212, b: 191 },
+    snakeTail: { r: 13, g: 116, b: 109 },
   };
 
   function loadBestScore() {
@@ -123,7 +123,7 @@
     syncBestScoreUi();
     setHint(
       state.overlayTitle === "Hazard hit"
-        ? "You hit a red hazard · tap Play again"
+        ? "You hit a sea urchin · tap Play again"
         : state.win
           ? "Perfect run · tap Play again"
           : "Game over · tap Play again",
@@ -218,17 +218,17 @@
       const by = state.bonusFood.y * CELL + CELL / 2;
       const pulse = 0.7 + Math.sin(ticks * 0.7) * 0.08;
 
-      ctx.fillStyle = "rgba(134, 239, 172, 0.26)";
+      ctx.fillStyle = "rgba(251, 191, 36, 0.28)";
       ctx.beginPath();
       ctx.arc(bx, by, CELL * pulse, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#22c55e";
+      ctx.fillStyle = "#f59e0b";
       ctx.beginPath();
       ctx.arc(bx, by, CELL * 0.36, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#bbf7d0";
+      ctx.fillStyle = "#fef3c7";
       ctx.beginPath();
       ctx.arc(bx - CELL * 0.08, by - CELL * 0.1, CELL * 0.12, 0, Math.PI * 2);
       ctx.fill();
